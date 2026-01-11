@@ -1,0 +1,74 @@
+package com.example.finalproje;
+
+import android.content.Context;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+
+public class DBHelper extends SQLiteOpenHelper {
+
+    private static final String DB_NAME = "harcama.db";
+    private static final int DB_VERSION = 1;
+
+    public DBHelper(Context context) {
+        super(context, DB_NAME, null, DB_VERSION);
+    }
+
+    @Override
+    public void onCreate(SQLiteDatabase db) {
+        db.execSQL(
+                "CREATE TABLE harcama (" +
+                        "id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                        "tutar REAL," +
+                        "tarih TEXT)"
+        );
+    }
+
+    @Override
+    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        db.execSQL("DROP TABLE IF EXISTS harcama");
+        onCreate(db);
+    }
+
+    public void harcamaEkle(double tutar) {
+        SQLiteDatabase db = getWritableDatabase();
+        db.execSQL(
+                "INSERT INTO harcama (tutar, tarih) VALUES (?, date('now'))",
+                new Object[]{tutar}
+        );
+    }
+
+
+    public double toplam() {
+        Cursor c = getReadableDatabase()
+                .rawQuery("SELECT SUM(tutar) FROM harcama", null);
+        c.moveToFirst();
+        double toplam = c.getDouble(0);
+        c.close();
+        return toplam;
+    }
+
+    public double ortalama30Gun() {
+        Cursor c = getReadableDatabase()
+                .rawQuery(
+                        "SELECT AVG(tutar) FROM harcama WHERE tarih >= date('now','-30 day')",
+                        null
+                );
+        c.moveToFirst();
+        double ortalama = c.getDouble(0);
+        c.close();
+        return ortalama;
+    }
+
+    public int gunSayisi() {
+        Cursor c = getReadableDatabase()
+                .rawQuery(
+                        "SELECT COUNT(DISTINCT tarih) FROM harcama",
+                        null
+                );
+        c.moveToFirst();
+        int gun = c.getInt(0);
+        c.close();
+        return gun;
+    }
+}
