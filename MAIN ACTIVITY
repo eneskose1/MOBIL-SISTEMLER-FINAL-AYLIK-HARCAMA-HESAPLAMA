@@ -1,0 +1,68 @@
+package com.example.finalproje;
+
+import android.annotation.SuppressLint;
+import android.graphics.Color;
+import android.os.Bundle;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
+import androidx.appcompat.app.AppCompatActivity;
+
+public class MainActivity extends AppCompatActivity {
+
+    EditText edtAmount;
+    Button btnSave;
+    TextView txtTotal, txtAverage, txtWarning;
+    DBHelper db;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        edtAmount = findViewById(R.id.edtAmount);
+        btnSave = findViewById(R.id.btnSave);
+        txtTotal = findViewById(R.id.txtTotal);
+        txtAverage = findViewById(R.id.txtAverage);
+        txtWarning = findViewById(R.id.txtWarning);
+
+        db = new DBHelper(this);
+
+        btnSave.setOnClickListener(v -> {
+            String girilen = edtAmount.getText().toString();
+
+            if (girilen.isEmpty()) {
+                Toast.makeText(this, "Harcama giriniz", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            double tutar = Double.parseDouble(girilen);
+            db.harcamaEkle(tutar);
+
+            edtAmount.setText("");
+            guncelle();
+        });
+
+        guncelle();
+    }
+
+    @SuppressLint("SetTextI18n")
+    private void guncelle() {
+        int gun = db.gunSayisi();
+
+        txtTotal.setText("Toplam: " + db.toplam() + " TL");
+        txtAverage.setText("30 Günlük Ortalama: " + db.ortalama30Gun() + " TL");
+
+        if (gun < 30) {
+            txtWarning.setText("⚠ Henüz " + gun + " / 30 gün veri var");
+            txtWarning.setTextColor(Color.RED);
+            btnSave.setEnabled(true);
+        } else {
+            txtWarning.setText("✔ 30 gün tamamlandı, veri girişi kapatıldı");
+            txtWarning.setTextColor(Color.GREEN);
+            btnSave.setEnabled(false);
+        }
+    }
+
+}
